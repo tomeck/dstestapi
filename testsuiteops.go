@@ -6,22 +6,20 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// POST /dstestapi/testcases handler
-func createTestCase(w http.ResponseWriter, r *http.Request) {
+// POST /dstestapi/testsuites handler
+func createTestSuite(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var testcase TestCase
+	var testsuite TestSuite
 
 	// we decode our body request params
-	_ = json.NewDecoder(r.Body).Decode(&testcase)
+	_ = json.NewDecoder(r.Body).Decode(&testsuite)
 
 	// insert our book model.
-	result, err := testcaseCollection.InsertOne(context.TODO(), testcase)
+	result, err := testsuiteCollection.InsertOne(context.TODO(), testsuite)
 
 	if err != nil {
 		GetError(err, w)
@@ -31,14 +29,14 @@ func createTestCase(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
-// GET /dstestapi/testcases handler
-func getTestCases(w http.ResponseWriter, r *http.Request) {
+// GET /dstestapi/testsuites handler
+func getTestSuites(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// Will store all the TestCase elements we find
-	var testCases []TestCase
+	// Will store all the TestSuite elements we find
+	var testSuites []TestSuite
 
-	// TODO JTE ***** use Mongo Aggretation instead of manual lookups of child objects
+	// TODO JTE ***** use Mongo Aggregation instead of manual lookups of child objects
 
 	// bson.M{},  we passed empty filter. So we want to get all data.
 	cur, err := testcaseCollection.Find(context.TODO(), bson.M{})
@@ -56,28 +54,29 @@ func getTestCases(w http.ResponseWriter, r *http.Request) {
 	for cur.Next(context.TODO()) {
 
 		// create a value into which the single document can be decoded
-		var testCase TestCase
+		var testSuite TestSuite
 
 		// & character returns the memory address of the following variable.
-		err := cur.Decode(&testCase) // decode similar to deserialize process.
+		err := cur.Decode(&testSuite) // decode similar to deserialize process.
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		// Load the predicates array for this test case
-		testCase, err = loadPredicates(testCase, context.TODO())
+		// Load the testCase array for this test suite
+		testSuite, err = loadTestCases(testSuite, context.TODO())
 
 		// add item our array
-		testCases = append(testCases, testCase)
+		testSuites = append(testSuites, testSuite)
 	}
 
 	if err := cur.Err(); err != nil {
 		log.Fatal(err)
 	}
 
-	json.NewEncoder(w).Encode(testCases) // encode similar to serialize process.
+	json.NewEncoder(w).Encode(testSuites) // encode similar to serialize process.
 }
 
+/*
 // GET /dstestapi/testcase/{id} handler
 func getTestCase(w http.ResponseWriter, r *http.Request) {
 	// set header.

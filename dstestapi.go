@@ -19,6 +19,7 @@ var db *mongo.Database
 var txCollection *mongo.Collection
 var predicateCollection *mongo.Collection
 var testcaseCollection *mongo.Collection
+var testsuiteCollection *mongo.Collection
 
 func main() {
 	//Init Router
@@ -37,8 +38,15 @@ func main() {
 	// /destestapi/testcases
 	r.HandleFunc("/dstestapi/testcases", createTestCase).Methods("POST")
 	r.HandleFunc("/dstestapi/testcases", getTestCases).Methods("GET")
-	// r.HandleFunc("/dstestapi/predicates/{id}", getPredicate).Methods("GET")
-	// r.HandleFunc("/dstestapi/predicates/{id}", deletePredicate).Methods("DELETE")
+	r.HandleFunc("/dstestapi/testcases/{id}", getTestCase).Methods("GET")
+	r.HandleFunc("/dstestapi/testcases/{id}", deleteTestCase).Methods("DELETE")
+	// r.HandleFunc("/dstestapi/predicates/{id}", updatePredicate).Methods("PUT")
+
+	// /destestapi/testsuites
+	r.HandleFunc("/dstestapi/testsuites", createTestSuite).Methods("POST")
+	r.HandleFunc("/dstestapi/testsuites", getTestSuites).Methods("GET")
+	// r.HandleFunc("/dstestapi/testcases/{id}", getTestCase).Methods("GET")
+	// r.HandleFunc("/dstestapi/testcases/{id}", deleteTestCase).Methods("DELETE")
 	// r.HandleFunc("/dstestapi/predicates/{id}", updatePredicate).Methods("PUT")
 
 	// Initialize database (hardcoded for local machine)
@@ -56,6 +64,7 @@ func main() {
 	txCollection = db.Collection("transactions")
 	predicateCollection = db.Collection("predicates")
 	testcaseCollection = db.Collection("testcases")
+	testsuiteCollection = db.Collection("testsuites")
 
 	fmt.Println("Initialized db and collections")
 
