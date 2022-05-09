@@ -18,6 +18,7 @@ var cancel context.CancelFunc
 var db *mongo.Database
 var txCollection *mongo.Collection
 var predicateCollection *mongo.Collection
+var testcaseCollection *mongo.Collection
 
 func main() {
 	//Init Router
@@ -33,6 +34,12 @@ func main() {
 	r.HandleFunc("/dstestapi/predicates/{id}", deletePredicate).Methods("DELETE")
 	r.HandleFunc("/dstestapi/predicates/{id}", updatePredicate).Methods("PUT")
 
+	// /destestapi/testcases
+	r.HandleFunc("/dstestapi/testcases", createTestCase).Methods("POST")
+	r.HandleFunc("/dstestapi/testcases", getTestCases).Methods("GET")
+	// r.HandleFunc("/dstestapi/predicates/{id}", getPredicate).Methods("GET")
+	// r.HandleFunc("/dstestapi/predicates/{id}", deletePredicate).Methods("DELETE")
+	// r.HandleFunc("/dstestapi/predicates/{id}", updatePredicate).Methods("PUT")
 
 	// Initialize database (hardcoded for local machine)
 	client, ctx, cancel, err := connect("mongodb://localhost:27017")
@@ -48,6 +55,7 @@ func main() {
 	db = client.Database("dstest")
 	txCollection = db.Collection("transactions")
 	predicateCollection = db.Collection("predicates")
+	testcaseCollection = db.Collection("testcases")
 
 	fmt.Println("Initialized db and collections")
 

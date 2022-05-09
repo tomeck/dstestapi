@@ -6,22 +6,21 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// POST /dstestapi/predicates handler
-func createPredicate(w http.ResponseWriter, r *http.Request) {
+// POST /dstestapi/testcases handler
+func createTestCase(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var predicate TestCasePredicate
+	var testcase TestCase
 
 	// we decode our body request params
-	_ = json.NewDecoder(r.Body).Decode(&predicate)
+	_ = json.NewDecoder(r.Body).Decode(&testcase)
 
 	// insert our book model.
-	result, err := predicateCollection.InsertOne(context.TODO(), predicate)
+	result, err := testcaseCollection.InsertOne(context.TODO(), testcase)
 
 	if err != nil {
 		GetError(err, w)
@@ -31,15 +30,17 @@ func createPredicate(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
-// GET /dstestapi/predicates handler
-func getPredicates(w http.ResponseWriter, r *http.Request) {
+// GET /dstestapi/testcases handler
+func getTestCases(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// we created Book array
-	var predicates []TestCasePredicate
+	// Will store all the TestCase elements we find
+	var testCases []TestCase
+
+	// TODO JTE ***** use Mongo Aggretation instead of manual lookups of child objects
 
 	// bson.M{},  we passed empty filter. So we want to get all data.
-	cur, err := predicateCollection.Find(context.TODO(), bson.M{})
+	cur, err := testcaseCollection.Find(context.TODO(), bson.M{})
 
 	if err != nil {
 		GetError(err, w)
@@ -47,32 +48,72 @@ func getPredicates(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Close the cursor once finished
-	/*A defer statement defers the execution of a function until the surrounding function returns.
-	simply, run cur.Close() process but after cur.Next() finished.*/
+	// A defer statement defers the execution of a function until the surrounding function returns.
+	// simply, run cur.Close() process but after cur.Next() finished.
 	defer cur.Close(context.TODO())
 
 	for cur.Next(context.TODO()) {
 
 		// create a value into which the single document can be decoded
-		var predicate TestCasePredicate
+		var testCase TestCase
 
 		// & character returns the memory address of the following variable.
-		err := cur.Decode(&predicate) // decode similar to deserialize process.
+		err := cur.Decode(&testCase) // decode similar to deserialize process.
 		if err != nil {
 			log.Fatal(err)
 		}
 
+		// Load the predicates array for this test case
+		testCase, err = loadPredicates(testCase)
+
 		// add item our array
-		predicates = append(predicates, predicate)
+		testCases = append(testCases, testCase)
 	}
 
 	if err := cur.Err(); err != nil {
 		log.Fatal(err)
 	}
 
-	json.NewEncoder(w).Encode(predicates) // encode similar to serialize process.
+	json.NewEncoder(w).Encode(testCases) // encode similar to serialize process.
 }
 
+// Deep load of all predicates in the supplied test case
+func loadPredicates(testCase TestCase) (TestCase, error) {
+
+	var predicates []*TestCasePredicate
+
+	for _, predicate := range testCase.Predicates {
+
+		predicate, err := getPredicateById(predicate.Id)
+
+		if err == nil {
+			predicates = append(predicates, &predicate)
+		} else {
+			return testCase, err
+		}
+	}
+
+	// Replace the Predicates array on the testCase with the fully resolved array
+	testCase.Predicates = predicates
+	return testCase, nil
+}
+
+// Fetch the Predicate with the specified id
+func getPredicateById(id primitive.ObjectID) (TestCasePredicate, error) {
+	// filter := bson.D{{"_id", bson.D{{"$eq", id}}}}
+
+	var predicate TestCasePredicate
+	filter := bson.M{"_id": id}
+	err := predicateCollection.FindOne(context.TODO(), filter).Decode(&predicate)
+
+	if err != nil {
+		return predicate, err
+	} else {
+		return predicate, nil
+	}
+}
+
+/*
 // GET /dstestapi/predicate/{id} handler
 func getPredicate(w http.ResponseWriter, r *http.Request) {
 	// set header.
@@ -148,7 +189,15 @@ func updatePredicate(w http.ResponseWriter, r *http.Request) {
 		}},
 	}
 
-	predicateCollection.FindOneAndUpdate(context.TODO(), filter, update)
+	// Set options so that the updated object is returned
+	// upsert := true
+	// after := options.After
+	// opt := options.FindOneAndUpdateOptions{
+	// 	ReturnDocument: &after,
+	// 	Upsert:         &upsert,
+	// }
+
+	predicateCollection.FindOneAndUpdate(context.TODO(), filter, update) //.Decode(&predicate)
 
 	// TODO JTE handle errors
 	// if err != nil {
@@ -160,3 +209,4 @@ func updatePredicate(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(predicate)
 }
+*/
