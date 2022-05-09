@@ -34,7 +34,7 @@ func getTestCaseById(id primitive.ObjectID, ctx context.Context) (TestCase, erro
 
 	var testCase TestCase
 	filter := bson.M{"_id": id}
-	err := predicateCollection.FindOne(ctx, filter).Decode(&testCase)
+	err := testcaseCollection.FindOne(ctx, filter).Decode(&testCase)
 
 	if err != nil {
 		return testCase, err

@@ -45,8 +45,8 @@ func main() {
 	// /destestapi/testsuites
 	r.HandleFunc("/dstestapi/testsuites", createTestSuite).Methods("POST")
 	r.HandleFunc("/dstestapi/testsuites", getTestSuites).Methods("GET")
-	// r.HandleFunc("/dstestapi/testcases/{id}", getTestCase).Methods("GET")
-	// r.HandleFunc("/dstestapi/testcases/{id}", deleteTestCase).Methods("DELETE")
+	r.HandleFunc("/dstestapi/testsuites/{id}", getTestSuite).Methods("GET")
+	r.HandleFunc("/dstestapi/testsuites/{id}", deleteTestSuite).Methods("DELETE")
 	// r.HandleFunc("/dstestapi/predicates/{id}", updatePredicate).Methods("PUT")
 
 	// Initialize database (hardcoded for local machine)

@@ -6,7 +6,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // POST /dstestapi/testsuites handler
@@ -39,7 +41,7 @@ func getTestSuites(w http.ResponseWriter, r *http.Request) {
 	// TODO JTE ***** use Mongo Aggregation instead of manual lookups of child objects
 
 	// bson.M{},  we passed empty filter. So we want to get all data.
-	cur, err := testcaseCollection.Find(context.TODO(), bson.M{})
+	cur, err := testsuiteCollection.Find(context.TODO(), bson.M{})
 
 	if err != nil {
 		GetError(err, w)
@@ -76,13 +78,12 @@ func getTestSuites(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(testSuites) // encode similar to serialize process.
 }
 
-/*
-// GET /dstestapi/testcase/{id} handler
-func getTestCase(w http.ResponseWriter, r *http.Request) {
+// GET /dstestapi/testsuite/{id} handler
+func getTestSuite(w http.ResponseWriter, r *http.Request) {
 	// set header.
 	w.Header().Set("Content-Type", "application/json")
 
-	var testcase TestCase
+	var testsuite TestSuite
 
 	// we get params with mux.
 	var params = mux.Vars(r)
@@ -92,7 +93,7 @@ func getTestCase(w http.ResponseWriter, r *http.Request) {
 
 	// We create filter. If it is unnecessary to sort data for you, you can use bson.M{}
 	filter := bson.M{"_id": id}
-	err := testcaseCollection.FindOne(context.TODO(), filter).Decode(&testcase)
+	err := testsuiteCollection.FindOne(context.TODO(), filter).Decode(&testsuite)
 
 	if err != nil {
 		//TODO assumption here is that the error is `not found`
@@ -101,13 +102,13 @@ func getTestCase(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load the predicates array for this test case
-	testcase, err = loadPredicates(testcase, context.TODO())
+	testsuite, err = loadTestCases(testsuite, context.TODO())
 
-	json.NewEncoder(w).Encode(testcase)
+	json.NewEncoder(w).Encode(testsuite)
 }
 
-// DELETE /dstestapi/testcase/{id} handler
-func deleteTestCase(w http.ResponseWriter, r *http.Request) {
+// DELETE /dstestapi/testsuite/{id} handler
+func deleteTestSuite(w http.ResponseWriter, r *http.Request) {
 	// Set header
 	w.Header().Set("Content-Type", "application/json")
 
@@ -120,7 +121,7 @@ func deleteTestCase(w http.ResponseWriter, r *http.Request) {
 	// prepare filter.
 	filter := bson.M{"_id": id}
 
-	deleteResult, err := testcaseCollection.DeleteOne(context.TODO(), filter)
+	deleteResult, err := testsuiteCollection.DeleteOne(context.TODO(), filter)
 
 	if err != nil {
 		GetError(err, w)
