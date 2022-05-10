@@ -20,6 +20,7 @@ type Transaction struct {
 
 type TestCasePredicate struct {
 	Id            primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Name          string             `json:"name,omitempty" validate:"required"`
 	Attribute     string             `json:"attribute,omitempty" validate:"required"`
 	ExpectedValue string             `json:"expected_value,omitempty" validate:"required"`
 }
@@ -52,7 +53,7 @@ type TestRun struct {
 	Name            string             `json:"name,omitempty" validate:"required"`
 	ApiKey          string             `json:"apikey,omitempty" validate:"required"`
 	TestRunHeaderId string             `json:"header_id,omitempty" validate:"required"`
-	TestSuite       TestSuite          `json:"test_suite,omitempty" validate:"required"`
+	TestSuite       *TestSuite         `json:"test_suite,omitempty" validate:"required"`
 	TestResults     []*TestResult      `json:"test_results,omitempty" validate:"required"`
 	Status          TestRunStatus      `json:"status,omitempty" validate:"required"`
 	Timestamp       time.Time          `json:"timestamp,omitempty" validate:"required"`
@@ -67,10 +68,10 @@ const (
 )
 
 type TestResult struct {
-	Id          primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	TestRun     *TestRun           `json:"test_run,omitempty" validate:"required"`
-	TestCase    *TestCase          `json:"test_case,omitempty" validate:"required"`
-	Transaction *Transaction       `json:"transaction,omitempty" validate:"required"`
-	Status      TestStatus         `json:"status,omitempty" validate:"required"`
-	Timestamp   time.Time          `json:"timestamp,omitempty" validate:"required"`
+	Id primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	//TestRun     *TestRun           `json:"test_run,omitempty" validate:"required"`
+	TestCase    *TestCase    `json:"test_case,omitempty" validate:"required"`
+	Transaction *Transaction `json:"transaction,omitempty" validate:"required"`
+	Status      TestStatus   `json:"status,omitempty" validate:"required"`
+	Timestamp   time.Time    `json:"timestamp,omitempty" validate:"required"`
 }

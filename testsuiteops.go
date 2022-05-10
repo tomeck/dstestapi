@@ -20,6 +20,9 @@ func createTestSuite(w http.ResponseWriter, r *http.Request) {
 	// we decode our body request params
 	_ = json.NewDecoder(r.Body).Decode(&testsuite)
 
+	// Load the test case array for this test
+	testsuite, err := loadTestCases(testsuite, context.TODO())
+
 	// insert our book model.
 	result, err := testsuiteCollection.InsertOne(context.TODO(), testsuite)
 
@@ -101,7 +104,7 @@ func getTestSuite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Load the predicates array for this test case
+	// Load the test case array for this test
 	testsuite, err = loadTestCases(testsuite, context.TODO())
 
 	json.NewEncoder(w).Encode(testsuite)
