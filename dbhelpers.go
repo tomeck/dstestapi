@@ -85,3 +85,19 @@ func getPredicateById(id primitive.ObjectID, ctx context.Context) (TestCasePredi
 		return predicate, nil
 	}
 }
+
+// Load and attach the TestSuite associated with the supplied (and returned) TestRun
+func loadTestSuite(testrun TestRun, ctx context.Context) (TestRun, error) {
+
+	var testsuite TestSuite
+
+	filter := bson.M{"_id": testrun.TestSuite.Id}
+	err := testsuiteCollection.FindOne(ctx, filter).Decode(&testsuite)
+
+	if err != nil {
+		return testrun, err
+	} else {
+		testrun.TestSuite = &testsuite
+		return testrun, nil
+	}
+}
