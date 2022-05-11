@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // Globals
@@ -21,6 +24,9 @@ var predicateCollection *mongo.Collection
 var testcaseCollection *mongo.Collection
 var testsuiteCollection *mongo.Collection
 var testrunCollection *mongo.Collection
+
+// const DB_CONNECTION_STRING = "mongodb://localhost:27017"
+const DB_CONNECTION_STRING = "mongodb+srv://admin:Ngokman3#@cluster0.mce8u.mongodb.net/dstest?retryWrites=true&w=majority"
 
 func main() {
 	//Init Router
@@ -41,14 +47,12 @@ func main() {
 	r.HandleFunc("/dstestapi/testcases", getTestCases).Methods("GET")
 	r.HandleFunc("/dstestapi/testcases/{id}", getTestCase).Methods("GET")
 	r.HandleFunc("/dstestapi/testcases/{id}", deleteTestCase).Methods("DELETE")
-	// r.HandleFunc("/dstestapi/predicates/{id}", updatePredicate).Methods("PUT")
 
 	// /destestapi/testsuites
 	r.HandleFunc("/dstestapi/testsuites", createTestSuite).Methods("POST")
 	r.HandleFunc("/dstestapi/testsuites", getTestSuites).Methods("GET")
 	r.HandleFunc("/dstestapi/testsuites/{id}", getTestSuite).Methods("GET")
 	r.HandleFunc("/dstestapi/testsuites/{id}", deleteTestSuite).Methods("DELETE")
-	// r.HandleFunc("/dstestapi/predicates/{id}", updatePredicate).Methods("PUT")
 
 	// /destestapi/testruns
 	r.HandleFunc("/dstestapi/testruns", initTestRun).Methods("POST")
@@ -56,15 +60,26 @@ func main() {
 	r.HandleFunc("/dstestapi/testruns/{id}", getTestRun).Methods("GET")
 	r.HandleFunc("/dstestapi/testruns/{id}", deleteTestRun).Methods("DELETE")
 
-	// Initialize database (hardcoded for local machine)
-	client, ctx, cancel, err := connect("mongodb://localhost:27017")
+	// Initialize database connection
+	// client, ctx, cancel, err := connect(DB_CONNECTION_STRING)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	serverAPIOptions := options.ServerAPI(options.ServerAPIVersion1)
+	clientOptions := options.Client().
+		ApplyURI(DB_CONNECTION_STRING).
+		SetServerAPIOptions(serverAPIOptions)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
+
+	fmt.Println("x1Connected to mongo at", DB_CONNECTION_STRING)
 
 	// Close db when the main function is returned.
 	defer close(client, ctx, cancel)
-	fmt.Println("Connected to local mongodb")
 
 	// Get target database and collection
 	db = client.Database("dstest")
@@ -76,6 +91,13 @@ func main() {
 
 	fmt.Println("Initialized db and collections")
 
-	// set our port address
-	log.Fatal(http.ListenAndServe(":8000", r))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8000"
+	}
+
+	fmt.Println("Listening on port", port)
+
+	// set our listen port address
+	log.Fatal(http.ListenAndServe(":"+port, r))
 }
