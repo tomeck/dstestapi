@@ -98,6 +98,12 @@ func getTestRun(w http.ResponseWriter, r *http.Request) {
 	filter := bson.M{"_id": id}
 	err := testrunCollection.FindOne(context.TODO(), filter).Decode(&testrun)
 
+	if err != nil {
+		//TODO assumption here is that the error is `not found`
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
 	// Load the Test Suite for this Test Run
 	testrun, err = loadTestSuite(testrun, context.TODO())
 
