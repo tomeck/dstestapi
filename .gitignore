@@ -1,2 +1,9 @@
 __debug_bin
 dstestapi
+bin/
+eb.zip
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

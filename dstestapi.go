@@ -93,7 +93,8 @@ func main() {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8000"
+		port = "5000"
+		fmt.Printf("defaulting to port %s\n", port)
 	}
 
 	fmt.Println("Listening on port", port)
