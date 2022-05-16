@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -26,7 +25,7 @@ func initTestRun(w http.ResponseWriter, r *http.Request) {
 	testrun.Status = Created
 
 	// insert our object
-	result, err := testrunCollection.InsertOne(context.TODO(), testrun)
+	result, err := testrunCollection.InsertOne(ctx, testrun)
 
 	if err != nil {
 		GetError(err, w)
@@ -43,8 +42,14 @@ func getTestRuns(w http.ResponseWriter, r *http.Request) {
 	// The array of TestRuns
 	var testruns []TestRun
 
-	// bson.M{},  we passed empty filter. So we want to get all data.
-	cur, err := testrunCollection.Find(context.TODO(), bson.M{})
+	// Check whether params were passed; set filter accordingly
+	filter := bson.D{}
+	apiKey := r.URL.Query().Get("apikey")
+	if apiKey != "" {
+		filter = bson.D{{"apikey", bson.D{{"$eq", apiKey}}}}
+	}
+
+	cur, err := testrunCollection.Find(ctx, filter)
 
 	if err != nil {
 		GetError(err, w)
@@ -52,11 +57,9 @@ func getTestRuns(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Close the cursor once finished
-	/*A defer statement defers the execution of a function until the surrounding function returns.
-	simply, run cur.Close() process but after cur.Next() finished.*/
-	defer cur.Close(context.TODO())
+	defer cur.Close(ctx)
 
-	for cur.Next(context.TODO()) {
+	for cur.Next(ctx) {
 
 		// create a value into which the single document can be decoded
 		var testrun TestRun
@@ -68,7 +71,7 @@ func getTestRuns(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Load the Test Suite for this Test Run
-		testrun, err = loadTestSuite(testrun, context.TODO())
+		testrun, err = loadTestSuite(testrun, ctx)
 
 		// add item our array
 		testruns = append(testruns, testrun)
@@ -96,7 +99,7 @@ func getTestRun(w http.ResponseWriter, r *http.Request) {
 
 	// We create filter. If it is unnecessary to sort data for you, you can use bson.M{}
 	filter := bson.M{"_id": id}
-	err := testrunCollection.FindOne(context.TODO(), filter).Decode(&testrun)
+	err := testrunCollection.FindOne(ctx, filter).Decode(&testrun)
 
 	if err != nil {
 		//TODO assumption here is that the error is `not found`
@@ -105,7 +108,7 @@ func getTestRun(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load the Test Suite for this Test Run
-	testrun, err = loadTestSuite(testrun, context.TODO())
+	testrun, err = loadTestSuite(testrun, ctx)
 
 	if err != nil {
 		//TODO assumption here is that the error is `not found`
@@ -130,7 +133,7 @@ func deleteTestRun(w http.ResponseWriter, r *http.Request) {
 	// prepare filter.
 	filter := bson.M{"_id": id}
 
-	deleteResult, err := testrunCollection.DeleteOne(context.TODO(), filter)
+	deleteResult, err := testrunCollection.DeleteOne(ctx, filter)
 
 	if err != nil {
 		GetError(err, w)

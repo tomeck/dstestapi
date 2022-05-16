@@ -1,0 +1,13 @@
+Run Locally
+
+$ go build
+$ ./dstestapi
+
+(listens to port 5000 by default)
+
+
+Deploy to EB
+
+$ ./build.sh
+Upload file to EB environment via EB console
+
