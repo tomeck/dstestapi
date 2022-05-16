@@ -28,7 +28,10 @@ func createTestCase(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(result)
+	// Return the insertedId as the Id for this newly created testcase
+	testcase.Id = result.InsertedID.(primitive.ObjectID)
+
+	json.NewEncoder(w).Encode(testcase)
 }
 
 // GET /dstestapi/testcases handler
@@ -49,8 +52,6 @@ func getTestCases(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Close the cursor once finished
-	// A defer statement defers the execution of a function until the surrounding function returns.
-	// simply, run cur.Close() process but after cur.Next() finished.
 	defer cur.Close(context.TODO())
 
 	for cur.Next(context.TODO()) {
@@ -58,8 +59,7 @@ func getTestCases(w http.ResponseWriter, r *http.Request) {
 		// create a value into which the single document can be decoded
 		var testCase TestCase
 
-		// & character returns the memory address of the following variable.
-		err := cur.Decode(&testCase) // decode similar to deserialize process.
+		err := cur.Decode(&testCase) // decode current document into testcase instance
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -130,51 +130,3 @@ func deleteTestCase(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(deleteResult)
 }
-
-/*
-// PUT /dstestapi/predicate/{id} handler
-func updatePredicate(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	var params = mux.Vars(r)
-
-	//Get id from parameters
-	id, _ := primitive.ObjectIDFromHex(params["id"])
-
-	var predicate TestCasePredicate
-
-	// Create filter
-	filter := bson.M{"_id": id}
-
-	// Read update model from body request
-	_ = json.NewDecoder(r.Body).Decode(&predicate)
-
-	// prepare update model.
-	update := bson.D{
-		{"$set", bson.D{
-			{"attribute", predicate.Attribute},
-			{"expected_value", predicate.ExpectedValue},
-		}},
-	}
-
-	// Set options so that the updated object is returned
-	// upsert := true
-	// after := options.After
-	// opt := options.FindOneAndUpdateOptions{
-	// 	ReturnDocument: &after,
-	// 	Upsert:         &upsert,
-	// }
-
-	predicateCollection.FindOneAndUpdate(context.TODO(), filter, update) //.Decode(&predicate)
-
-	// TODO JTE handle errors
-	// if err != nil {
-	// 	GetError(err, w)
-	// 	return
-	// }
-
-	predicate.Id = id
-
-	json.NewEncoder(w).Encode(predicate)
-}
-*/

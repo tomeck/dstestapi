@@ -20,7 +20,7 @@ func createPredicate(w http.ResponseWriter, r *http.Request) {
 	// we decode our body request params
 	_ = json.NewDecoder(r.Body).Decode(&predicate)
 
-	// insert our book model.
+	// insert our predicate
 	result, err := predicateCollection.InsertOne(context.TODO(), predicate)
 
 	if err != nil {
@@ -28,7 +28,10 @@ func createPredicate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(result)
+	// Return the insertedId as the Id for this newly created predicate
+	predicate.Id = result.InsertedID.(primitive.ObjectID)
+
+	json.NewEncoder(w).Encode(predicate)
 }
 
 // GET /dstestapi/predicates handler
@@ -47,17 +50,15 @@ func getPredicates(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Close the cursor once finished
-	/*A defer statement defers the execution of a function until the surrounding function returns.
-	simply, run cur.Close() process but after cur.Next() finished.*/
+
 	defer cur.Close(context.TODO())
 
 	for cur.Next(context.TODO()) {
 
-		// create a value into which the single document can be decoded
+		// create a value into which the single predicate can be decoded
 		var predicate TestCasePredicate
 
-		// & character returns the memory address of the following variable.
-		err := cur.Decode(&predicate) // decode similar to deserialize process.
+		err := cur.Decode(&predicate) // decode current document into predicate object
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -70,7 +71,7 @@ func getPredicates(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	json.NewEncoder(w).Encode(predicates) // encode similar to serialize process.
+	json.NewEncoder(w).Encode(predicates)
 }
 
 // GET /dstestapi/predicate/{id} handler

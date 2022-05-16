@@ -32,7 +32,10 @@ func initTestRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(result)
+	// Return the insertedId as the Id for this newly created testrun
+	testrun.Id = result.InsertedID.(primitive.ObjectID)
+
+	json.NewEncoder(w).Encode(testrun)
 }
 
 // GET /dstestapi/testruns handler
