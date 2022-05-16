@@ -29,6 +29,12 @@ var testrunCollection *mongo.Collection
 
 const DB_CONNECTION_STRING = "mongodb+srv://admin:Ngokman3#@cluster0.mce8u.mongodb.net/dstest?retryWrites=true&w=majority"
 
+// GET / handler
+func healthCheck(w http.ResponseWriter, r *http.Request) {
+	// set header.
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func main() {
 	//Init Router
 	r := mux.NewRouter()
@@ -60,6 +66,9 @@ func main() {
 	r.HandleFunc("/dstestapi/testruns", getTestRuns).Methods("GET")
 	r.HandleFunc("/dstestapi/testruns/{id}", getTestRun).Methods("GET")
 	r.HandleFunc("/dstestapi/testruns/{id}", deleteTestRun).Methods("DELETE")
+
+	// Health check endpoint
+	r.HandleFunc("/", healthCheck).Methods("GET")
 
 	// Initialize database connection
 	// client, ctx, cancel, err := connect(DB_CONNECTION_STRING)
