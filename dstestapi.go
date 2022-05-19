@@ -66,6 +66,7 @@ func main() {
 	r.HandleFunc("/dstestapi/testruns", initTestRun).Methods("POST")
 	r.HandleFunc("/dstestapi/testruns", getTestRuns).Methods("GET")
 	r.HandleFunc("/dstestapi/testruns/{id}", getTestRun).Methods("GET")
+	r.HandleFunc("/dstestapi/testruns/{id}/report", getTestRunReport).Methods("GET")
 	r.HandleFunc("/dstestapi/testruns/{id}", deleteTestRun).Methods("DELETE")
 	r.HandleFunc("/dstestapi/testruns/{id}/stop", stopTestRun).Methods("POST")
 

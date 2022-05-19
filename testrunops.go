@@ -122,6 +122,42 @@ func getTestRun(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(testrun)
 }
 
+// GET /dstestapi/testruns/{id}/report handler
+func getTestRunReport(w http.ResponseWriter, r *http.Request) {
+	// set header.
+	w.Header().Set("Content-Type", "application/json")
+
+	var testrun TestRun
+
+	// we get params with mux.
+	var params = mux.Vars(r)
+
+	// string to primitive.ObjectID
+	id, _ := primitive.ObjectIDFromHex(params["id"])
+
+	// We create filter. If it is unnecessary to sort data for you, you can use bson.M{}
+	filter := bson.M{"_id": id}
+	err := testrunCollection.FindOne(ctx, filter).Decode(&testrun)
+
+	if err != nil {
+		//TODO assumption here is that the error is `not found`
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	// Load the Test Suite for this Test Run
+	testrun, err = loadTestSuite(testrun, ctx)
+
+	if err != nil {
+		//TODO assumption here is that the error is `not found`
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	testRunReport, err := compileTestRunReport(testrun)
+	json.NewEncoder(w).Encode(testRunReport)
+}
+
 // DELETE /dstestapi/testruns/{id} handler
 func deleteTestRun(w http.ResponseWriter, r *http.Request) {
 	// Set header

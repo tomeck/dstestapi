@@ -248,3 +248,36 @@ func collectTestRun(testRunId string) (TestRun, error) {
 
 	return testRun, err
 }
+
+func compileTestRunReport(testRun TestRun) (TestRunReport, error) {
+
+	testRunReport := TestRunReport{TestSuite: testRun.TestSuite, TestRun: &testRun, Status: testRun.Status}
+
+	numSuccess := 0
+	numAttempted := 0
+
+	for _, testCase := range testRun.TestSuite.TestCases {
+		testResult, err := getTestResultforTestCase(*testCase, testRun)
+		testStatus := UndefinedTestStatus
+		if err == nil {
+			numAttempted += 1
+			if testResult.Status == Success {
+				numSuccess += 1
+				testStatus = Success
+			} else {
+				testStatus = Failure
+			}
+		} else {
+			testStatus = NotAttempted
+		}
+
+		testCaseReport := TestCaseReport{TestCase: testCase, Status: testStatus}
+		testRunReport.TestCaseReports = append(testRunReport.TestCaseReports, testCaseReport)
+	}
+
+	testRunReport.NumTestCases = len(testRun.TestSuite.TestCases)
+	testRunReport.NumTestsAttempted = numAttempted
+	testRunReport.NumTestsPassed = numSuccess
+
+	return testRunReport, nil
+}

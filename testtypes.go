@@ -66,6 +66,7 @@ const (
 	UndefinedTestStatus TestStatus = iota
 	Success
 	Failure
+	NotAttempted
 )
 
 type TestResult struct {
@@ -75,4 +76,19 @@ type TestResult struct {
 	Transaction *Transaction `json:"transaction,omitempty" validate:"required"`
 	Status      TestStatus   `json:"status,omitempty" validate:"required"`
 	Timestamp   time.Time    `json:"timestamp,omitempty" validate:"required"`
+}
+
+type TestCaseReport struct {
+	TestCase *TestCase  `json:"test_case,omitempty" validate:"required"`
+	Status   TestStatus `json:"status,omitempty" validate:"required"`
+}
+
+type TestRunReport struct {
+	TestSuite         *TestSuite       `json:"test_suite,omitempty" validate:"required"`
+	TestRun           *TestRun         `json:"test_run,omitempty" validate:"required"`
+	Status            TestRunStatus    `json:"status,omitempty" validate:"required"`
+	NumTestCases      int              `json:"num_test_cases,omitempty" validate:"required"`
+	NumTestsAttempted int              `json:"num_tests_attempted,omitempty" validate:"required"`
+	NumTestsPassed    int              `json:"num_tests_passed,omitempty" validate:"required"`
+	TestCaseReports   []TestCaseReport `json:"test_case_reports,omitempty" validate:"required"`
 }
