@@ -145,3 +145,20 @@ func deleteTestRun(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(deleteResult)
 }
+
+// POST /dstestapi/testruns/:id/stop handler
+func stopTestRun(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// get params
+	var params = mux.Vars(r)
+
+	testRun, err := collectTestRun(params["id"])
+
+	if err != nil {
+		GetError(err, w)
+		return
+	}
+
+	json.NewEncoder(w).Encode(testRun)
+}

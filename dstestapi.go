@@ -59,6 +59,7 @@ func main() {
 	r.HandleFunc("/dstestapi/testsuites", createTestSuite).Methods("POST")
 	r.HandleFunc("/dstestapi/testsuites", getTestSuites).Methods("GET")
 	r.HandleFunc("/dstestapi/testsuites/{id}", getTestSuite).Methods("GET")
+	r.HandleFunc("/dstestapi/testsuites/{id}/summary", getTestSuiteSummary).Methods("GET")
 	r.HandleFunc("/dstestapi/testsuites/{id}", deleteTestSuite).Methods("DELETE")
 
 	// /destestapi/testruns
@@ -66,6 +67,7 @@ func main() {
 	r.HandleFunc("/dstestapi/testruns", getTestRuns).Methods("GET")
 	r.HandleFunc("/dstestapi/testruns/{id}", getTestRun).Methods("GET")
 	r.HandleFunc("/dstestapi/testruns/{id}", deleteTestRun).Methods("DELETE")
+	r.HandleFunc("/dstestapi/testruns/{id}/stop", stopTestRun).Methods("POST")
 
 	// Health check endpoint
 	r.HandleFunc("/", healthCheck).Methods("GET")
