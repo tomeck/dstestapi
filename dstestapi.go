@@ -27,7 +27,7 @@ var testrunCollection *mongo.Collection
 
 // const DB_CONNECTION_STRING = "mongodb://localhost:27017"
 
-const DB_CONNECTION_STRING = "mongodb+srv://admin:Ngokman3#@cluster0.mce8u.mongodb.net/dstest?retryWrites=true&w=majority"
+const DB_CONNECTION_STRING = "mongodb+srv://admin:atlasdb123@cluster0.mce8u.mongodb.net/dstest?retryWrites=true&w=majority"
 
 // GET / handler
 func healthCheck(w http.ResponseWriter, r *http.Request) {
