@@ -115,6 +115,9 @@ func matchTransactionsToTestRun(testRun *TestRun, transactions []Transaction) er
 
 	testRunStatus := Complete
 
+	// Zero out previous matching results
+	testRun.TestResults = nil
+
 	// For each test case in the test suite associated with this run...
 	for _, testCase := range testRun.TestSuite.TestCases {
 
