@@ -73,7 +73,7 @@ func matchTransactionToTestCase(testCase TestCase, transactions []Transaction) (
 
 	var err error
 	var matchingTransaction Transaction
-	testStatus := UndefinedTestStatus
+	testStatus := NotAttempted
 
 	for _, transaction := range transactions {
 
@@ -103,9 +103,9 @@ func matchTransactionToTestCase(testCase TestCase, transactions []Transaction) (
 	}
 
 	// If test status is still undefined, then we did not find a matching transaction
-	if testStatus == UndefinedTestStatus {
-		err = errors.New("Could not find transaction to match test case " + testCase.Name)
-	}
+	// if testStatus == UndefinedTestStatus {
+	// 	err = errors.New("Could not find transaction to match test case " + testCase.Name)
+	// }
 
 	return matchingTransaction, testStatus, err
 }
@@ -131,6 +131,8 @@ func matchTransactionsToTestRun(testRun *TestRun, transactions []Transaction) er
 		} else {
 			// Did not find a transaction to match this test case
 			fmt.Println("Did not find matching transaction")
+			testResult := TestResult{ /*TestRun: testRun, */ TestCase: testCase, Status: testStatus, Transaction: &transaction, Timestamp: time.Now()}
+			testRun.TestResults = append(testRun.TestResults, &testResult)
 			testRunStatus = InProgress
 		}
 	}
@@ -255,14 +257,15 @@ func collectTestRun(testRunId string) (TestRun, error) {
 func compileTestRunReport(testRun TestRun) (TestRunReport, error) {
 
 	testRunReport := TestRunReport{TestSuite: testRun.TestSuite, TestRun: &testRun, Status: testRun.Status}
+	testRunReport.TestCaseReports = make([]TestCaseReport, len(testRun.TestSuite.TestCases))
 
 	numSuccess := 0
 	numAttempted := 0
 
-	for _, testCase := range testRun.TestSuite.TestCases {
-		testResult, err := getTestResultforTestCase(*testCase, testRun)
-		testStatus := UndefinedTestStatus
-		if err == nil {
+	for i, testCase := range testRun.TestSuite.TestCases {
+		testResult, _ := getTestResultforTestCase(*testCase, testRun)
+		testStatus := NotAttempted
+		if testResult.Status == Success || testResult.Status == Failure {
 			numAttempted += 1
 			if testResult.Status == Success {
 				numSuccess += 1
@@ -270,12 +273,13 @@ func compileTestRunReport(testRun TestRun) (TestRunReport, error) {
 			} else {
 				testStatus = Failure
 			}
-		} else {
-			testStatus = NotAttempted
-		}
+		} //else {
+		// 	testStatus = NotAttempted
+		// }
 
 		testCaseReport := TestCaseReport{TestCase: testCase, Status: testStatus}
-		testRunReport.TestCaseReports = append(testRunReport.TestCaseReports, testCaseReport)
+		//testRunReport.TestCaseReports = append(testRunReport.TestCaseReports, testCaseReport)
+		testRunReport.TestCaseReports[i] = testCaseReport
 	}
 
 	testRunReport.NumTestCases = len(testRun.TestSuite.TestCases)
